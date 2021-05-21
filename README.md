@@ -1,3 +1,4 @@
+# Home Value Forecasts for Chicago's TIF Districts
 by Carly Tsuda, for the Flatiron School Data Science Program, Phase 4
 
 ![tif](./img/Chicago_TIFs_Map.jpg)
@@ -47,7 +48,7 @@ Please review the narrative of the analysis in [my jupyter notebook](./project4 
 ```
 ├── README.md                       
 ├── project4 - TIF District Forecasting.ipynb            <- Jupyter Notebook presentation
-├── Forecast for Chicag's TIF Districts.pdf              <- Non-technical presentation
+├── Forecast for Chicago's TIF Districts.pdf              <- Non-technical presentation
 ├── Home Value Forecast in Chicago's TIF Districts.pdf   <- PDF of Jupyter Notebook
 ├── geocoded_data.csv                                    <- dataframe created in notebook using geocoder
 └── img                                                  <- directory containing visualizations and images for presentation
