@@ -1,72 +1,55 @@
+by Carly Tsuda, for the Flatiron School Data Science Program, Phase 4
 
-# Mod 4 Project - Starter Notebook
+![tif](./img/Chicago_TIFs_Map.jpg)
 
-This notebook has been provided to you so that you can make use of the following starter code to help with the trickier parts of preprocessing the Zillow dataset. 
+### Business problem:
+The controversial Tax Increment Financing program in the city of Chicago is undergoing an overhaul under newly-elected Chicago Mayor Lori Lightfoot. Lightfoot hopes to improve transparency and equity in the program and who it benefits. As part of this plan, she has established a Community Stakeholder team to oversee decisions about what districts are added to the program and which projects receive funding.
 
-The notebook contains a rough outline the general order you'll likely want to take in this project. You'll notice that most of the areas are left blank. This is so that it's more obvious exactly when you should make use of the starter code provided for preprocessing. 
-
-**_NOTE:_** The number of empty cells are not meant to infer how much or how little code should be involved in any given step--we've just provided a few for your convenience. Add, delete, and change things around in this notebook as needed!
-
-# Some Notes Before Starting
-
-This project will be one of the more challenging projects you complete in this program. This is because working with Time Series data is a bit different than working with regular datasets. In order to make this a bit less frustrating and help you understand what you need to do (and when you need to do it), we'll quickly review the dataset formats that you'll encounter in this project. 
-
-## Wide Format vs Long Format
-
-If you take a look at the format of the data in `zillow_data.csv`, you'll notice that the actual Time Series values are stored as separate columns. Here's a sample: 
-
-<img src='~/../images/df_head.png'>
-
-You'll notice that the first seven columns look like any other dataset you're used to working with. However, column 8 refers to the median housing sales values for April 1996, column 9 for May 1996, and so on. This This is called **_Wide Format_**, and it makes the dataframe intuitive and easy to read. However, there are problems with this format when it comes to actually learning from the data, because the data only makes sense if you know the name of the column that the data can be found it. Since column names are metadata, our algorithms will miss out on what dates each value is for. This means that before we pass this data to our ARIMA model, we'll need to reshape our dataset to **_Long Format_**. Reshaped into long format, the dataframe above would now look like:
-
-<img src='~/../images/melted1.png'>
-
-There are now many more rows in this dataset--one for each unique time and zipcode combination in the data! Once our dataset is in this format, we'll be able to train an ARIMA model on it. The method used to convert from Wide to Long is `pd.melt()`, and it is common to refer to our dataset as 'melted' after the transition to denote that it is in long format. 
-
-# Helper Functions Provided
-
-Melting a dataset can be tricky if you've never done it before, so you'll see that we have provided a sample function, `melt_data()`, to help you with this step below. Also provided is:
-
-* `get_datetimes()`, a function to deal with converting the column values for datetimes as a pandas series of datetime objects
-* Some good parameters for matplotlib to help make your visualizations more readable. 
-
-Good luck!
+The first step this group has taken is to analyze the current status of housing prices in this city, and to forecast what they can expect for the future. The group wants to understand the property values and forecasts for each TIF region in the city to determine specific actions that the group can take to address the unique needs of each region.
 
 
-# Step 1: Load the Data/Filtering for Chosen Zipcodes
+### Data:
+I'm using Zillow home value data from 1996 - 2018. The data represents aggregated home value for each zip code in the US, and also includes the city, county, larger metro area, and state for each zip code. It also includes a variable 'SizeRank'. This dataset was included as project data in the assignment, and might not be the most recent data available.
 
-# Step 2: Data Preprocessing
+I also hand-coded Region data to best align the zip-code data with the TIF regions, and used a geolocator to calculate latitude and longitude for each zip code.
+
+### Methods:
+The final models, representing the data broken down by region, each do a fairly good job of predicting future property values with some degree of reliability. The time series for some regions were better suited for modeling than others, but overall the results were fairly reliable.
+
+Each model used a SARIMAX algorithm with P, Q, R and P, Q, R s values of (1, 1, 1) x (1, 1, 1). Each forecast was set to predict 3 years into the future.
+
+### Results:
+
+![model predictions](./img/Forecast-plot.png)
+
+| Region Name | AIC | P-Values | MSE | Slope |
+|-|-|-|-|-|
+| North | 2425 | All < 0.05 | 229830277.95 | 674 |
+| Northwest | 2223 | All < 0.05 | 758391504.87 | 534 |
+| Central | 2468 | ma and ma.S > 0.05 | 4128341244.86 | 1632 |
+| West | 2333 | ar.S > 0.05 | 52323284.94 | -54 |
+| Southwest | 2035 | < 0.05 | 166530296.16 | 424 |
+| South | 2248 | ma.S > 0.05 | 27319322.0 | 713|
+| Far South | 2036 | < 0.05 | 6196247.93 | -517 |
+
+Overall, the AIC values of the regional time-series data were low, indicating a relatively good fit. For most of the models, each element of the SARIMAX model returned a p-value of less than 0.05, meaning we can reject the null hypothesis. For the models that did have higher p-values, they represented only one or two of the SARIMAX components, and were balanced out by other lower p-values. 
+
+The MSE were relatively low across the models. It is difficult to compare the MSE between the individual regions, because there are fairly dramatic differences in aggregate home value between the regions. Perhaps the most disappointing metric of these models are the large confidence intervals. The larger areas of the confidence intervals indicate a substantial range for the predicted values, which does little to offer guidance about future home values, much less confidence in that guidance.
 
 
-```python
-def get_datetimes(df):
-    return pd.to_datetime(df.columns.values[1:], format='%Y-%m')
+### Recomendations:
+
+
+### For further information:
+Please review the narrative of the analysis in [my jupyter notebook](./project4 - TIF District Forecasting.ipynb) and review [my non-technical presentation](./Forecast for Chicag's TIF Districts.pdf).
+
+#### Repository structure:
 ```
-
-# Step 3: EDA and Visualization
-
-
-```python
-font = {'family' : 'normal',
-        'weight' : 'bold',
-        'size'   : 22}
-
-matplotlib.rc('font', **font)
-
-# NOTE: if you visualizations are too cluttered to read, try calling 'plt.gcf().autofmt_xdate()'!
-```
-
-# Step 4: Reshape from Wide to Long Format
-
-
-```python
-def melt_data(df):
-    melted = pd.melt(df, id_vars=['RegionName', 'City', 'State', 'Metro', 'CountyName'], var_name='time')
-    melted['time'] = pd.to_datetime(melted['time'], infer_datetime_format=True)
-    melted = melted.dropna(subset=['value'])
-    return melted.groupby('time').aggregate({'value':'mean'})
-```
-
-# Step 5: ARIMA Modeling
-
-# Step 6: Interpreting Results
+├── README.md                       
+├── project4 - TIF District Forecasting.ipynb            <- Jupyter Notebook presentation
+├── Forecast for Chicag's TIF Districts.pdf              <- Non-technical presentation
+├── Home Value Forecast in Chicago's TIF Districts.pdf   <- PDF of Jupyter Notebook
+├── geocoded_data.csv                                    <- dataframe created in notebook using geocoder
+└── img                                                  <- directory containing visualizations and images for presentation
+    └── images    
+└── data                                                  <- contains original dataset and data dictionary
